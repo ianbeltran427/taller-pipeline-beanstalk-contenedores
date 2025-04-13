@@ -5,22 +5,41 @@ phases:
     commands:
       - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 532296452329.dkr.ecr.us-east-1.amazonaws.com
+
   build:
     commands:
       - echo Build started on `date`
-      - echo Building the Docker image...          
+      - echo Building the Docker image...
       - docker build -t python_name .
       - docker tag python_name:latest 532296452329.dkr.ecr.us-east-1.amazonaws.com/python_name:latest
+
   post_build:
     commands:
-    - echo Logging in to Amazon ECR again before push...
-    - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 532296452329.dkr.ecr.us-east-1.amazonaws.com
-    - echo Build completed on `date`
-    - echo Pushing the Docker image...
-    - docker push 532296452329.dkr.ecr.us-east-1.amazonaws.com/python_name:latest
+      - echo Logging in to Amazon ECR again before push...
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 532296452329.dkr.ecr.us-east-1.amazonaws.com
+      - echo Build completed on `date`
+      - echo Pushing the Docker image...
+      - docker push 532296452329.dkr.ecr.us-east-1.amazonaws.com/python_name:latest
+      - echo Writing Dockerrun.aws.json...
+      - |
+        cat > Dockerrun.aws.json <<EOF
+        {
+          "AWSEBDockerrunVersion": "1",
+          "Image": {
+            "Name": "532296452329.dkr.ecr.us-east-1.amazonaws.com/python_name:latest",
+            "Update": "true"
+          },
+          "Ports": [
+            {
+              "ContainerPort": 5000
+            }
+          ]
+        }
+        EOF
+
 artifacts:
   files:
-    - '**/*'
-  name: python_name.zip  
+    - Dockerrun.aws.json
+  name: python_name.zip
   discard-paths: yes
   encryptionDisabled: false
