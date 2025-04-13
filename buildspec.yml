@@ -19,6 +19,6 @@ phases:
 artifacts:
   files:
     - '**/*'
-  name: BuildArtifact.zip  
+  name: python_name.zip  
   discard-paths: yes
   encryptionDisabled: false
